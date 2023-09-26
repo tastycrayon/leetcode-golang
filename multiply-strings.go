@@ -1,63 +1,36 @@
 package main
 
-import (
-	"fmt"
-	"strconv"
-)
-
 func multiply(num1 string, num2 string) string {
 	length1, length2 := len(num1), len(num2)
+	const zero byte = 48
 
-	if length1 < length2 {
-		num1, num2 = num2, num1
-		length1, length2 = len(num1), len(num2)
+	if (length1 == 1 && num1[0] == zero) || (length2 == 1 && num2[0] == zero) {
+		return "0"
 	}
-	finalResult := ""
-	carry := 0
+
+	maxLength := length1 + length2
+	result := make([]byte, maxLength)
 
 	for i := length2 - 1; i >= 0; i-- {
-		result := 0
-		remainder := 0
-		number2, _ := strconv.Atoi(string(num2[i]))
-
-		multiplier := 0
+		var digit2 byte = num2[i] - zero
 		for j := length1 - 1; j >= 0; j-- {
-			jPlace := (length1 - 1 - j)
-			if jPlace == 0 {
-				multiplier = 1
-			} else {
-				multiplier *= 10
-			}
-
-			number1, _ := strconv.Atoi(string(num1[j]))
-
-			tempResult := number2 * number1
-			tempResult += remainder // add remainder
-
-			oneResult := tempResult % 10
-			remainder = tempResult / 10
-
-			result = oneResult*multiplier + result
-
+			var digit1 byte = num1[j] - zero
+			result[i+j+1] += digit1 * digit2  // last digit
+			result[i+j] += result[i+j+1] / 10 // has carry
+			result[i+j+1] %= 10               // single digit
 		}
-		if remainder != 0 {
-			carry += remainder * multiplier * 10
+	}
+	output := make([]byte, 0, maxLength)
+
+	var checkForZero = true
+	for _, val := range result {
+		if val != 0 {
+			checkForZero = false
 		}
-		temp := result + carry
-		result = temp % 10
-		carry = temp - result
-		carry = carry / 10
-
-		finalResult = strconv.Itoa(result) + finalResult
+		if checkForZero {
+			continue
+		}
+		output = append(output, val+zero)
 	}
-
-	if carry != 0 {
-		return strconv.Itoa(carry) + finalResult
-	}
-	return finalResult
-}
-
-func main() {
-	fmt.Println(multiply("925101087184894", "3896737933784656127"))
-	//3604876499018802870538090258945538
+	return string(output)
 }
